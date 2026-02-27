@@ -44,7 +44,7 @@ def ai_guard_check_prompt(prompt: str) -> dict:
     headers = {
         "Authorization": f"Bearer {V1_API_KEY}",
         "Content-Type": "application/json",
-        "TMV1-Application-Name": "trendai-strands-oneoff",
+        "TMV1-Application-Name": "aiguard-strands-oneoff",
         "TMV1-Request-Type": "SimpleRequestGuardrails",
         "Prefer": "return=minimal",
         "Accept": "application/json",
@@ -73,7 +73,7 @@ def ai_guard_check_response(openai_like: dict) -> dict:
     headers = {
         "Authorization": f"Bearer {V1_API_KEY}",
         "Content-Type": "application/json",
-        "TMV1-Application-Name": "trendai-strands-oneoff",
+        "TMV1-Application-Name": "aiguard-strands-oneoff",
         "TMV1-Request-Type": "OpenAIChatCompletionResponseV1",
         "Prefer": "return=minimal",
         "Accept": "application/json",

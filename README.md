@@ -1,4 +1,4 @@
-# trendai-strands
+# aiguard-strands
 
 **Securing AWS Strands Agents with Trend Vision One AI Guard**
 
@@ -52,8 +52,8 @@ Two HTTP calls around one Strands agent invocation. No model changes, no prompt 
 
 ```bash
 # 1. Clone
-git clone https://github.com/<you>/trendai-strands.git
-cd trendai-strands
+git clone https://github.com/peeweeh/aiguard-strands.git
+cd aiguard-strands
 
 # 2. Create venv with Python 3.11+
 python3.11 -m venv .venv
