@@ -1,6 +1,6 @@
 # Securing Generative AI Workloads with Trend Vision One AI Guard and AWS Strands Agents
 
-## A Practitioner's Integration Guide for AWS Summit
+## A Practitioner's Integration Guide
 
 ---
 
@@ -120,7 +120,7 @@ Vision One AI Guard exposes a single REST endpoint. The `TMV1-Request-Type` head
 headers = {
     "Authorization":         f"Bearer {V1_API_KEY}",
     "Content-Type":          "application/json",
-    "TMV1-Application-Name": "my-ai-app",
+    "TMV1-Application-Name": "aiguard-strands-oneoff",
     "TMV1-Request-Type":     "SimpleRequestGuardrails",
     "Prefer":                "return=minimal",
     "Accept":                "application/json",
