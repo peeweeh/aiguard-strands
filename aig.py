@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import os
-import json
 import sys
-import requests
-import boto3
 
+import boto3
+import requests
 from strands import Agent
 from strands.models import BedrockModel
 
@@ -20,7 +19,7 @@ if len(sys.argv) > 1:
     message = " ".join(sys.argv[1:])
 
 # 2) Trend Vision One AI Guard
-V1_API_KEY = os.environ.get("V1_API_KEY")       # export V1_API_KEY=...
+V1_API_KEY = os.environ.get("V1_API_KEY")  # export V1_API_KEY=...
 V1_REGION = os.environ.get("V1_REGION", "us-east-1")  # xdr region (not AWS region)
 
 # 3) AWS / Bedrock / Strands
@@ -29,8 +28,13 @@ AWS_REGION = "us-east-2"  # Bedrock region
 MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"  # Haiku 4.5 in us-east-2
 
 # Trend Vision One AI Guard endpoint from docs
-# US region uses api.xdr.trendmicro.com (no subdomain); others use api.<region>.xdr.trendmicro.com
-_v1_host = "api.xdr.trendmicro.com" if V1_REGION in ("us", "", None) else f"api.{V1_REGION}.xdr.trendmicro.com"
+# US region: api.xdr.trendmicro.com (no subdomain)
+# All other regions: api.<region>.xdr.trendmicro.com
+_v1_host = (
+    "api.xdr.trendmicro.com"
+    if V1_REGION in ("us", "", None)
+    else f"api.{V1_REGION}.xdr.trendmicro.com"
+)
 APPLY_GUARDRAILS_URL = f"https://{_v1_host}/v3.0/aiSecurity/applyGuardrails"
 
 
@@ -58,9 +62,7 @@ def ai_guard_check_prompt(prompt: str) -> dict:
         timeout=10,
     )
     if resp.status_code != 200:
-        raise RuntimeError(
-            f"AI Guard error on prompt: {resp.status_code} {resp.text}"
-        )
+        raise RuntimeError(f"AI Guard error on prompt: {resp.status_code} {resp.text}")
 
     return resp.json()
 
