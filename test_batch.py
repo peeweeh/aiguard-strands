@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Batch test: runs ~100 prompts (30% bad, 70% good) through AI Guard only.
+Batch test: runs ~100 prompts (30% bad, 70% good) through the full pipeline:
+  AI Guard input → Strands/Bedrock → AI Guard output (for allowed prompts).
 Prints a summary table at the end.
 """
 import os, sys, time, requests
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from aig import ai_guard_check_response, build_strands_agent, MODEL_ID
 
 # ── reuse config from aig.py ────────────────────────────────────────────────
 V1_API_KEY = os.environ.get("V1_API_KEY")
@@ -125,7 +128,7 @@ def check_prompt(prompt: str) -> dict:
         headers={
             "Authorization": f"Bearer {V1_API_KEY}",
             "Content-Type": "application/json",
-            "TMV1-Application-Name": "trendai-batch-test",
+            "TMV1-Application-Name": "aiguard-strands-batch",
             "TMV1-Request-Type": "SimpleRequestGuardrails",
             "Prefer": "return=minimal",
             "Accept": "application/json",
@@ -200,26 +203,45 @@ if __name__ == "__main__":
 
     total   = len(PROMPTS)
     actions = []
-    print(f"\nRunning {total} prompts through AI Guard ({URL})\n")
-    print(f"{'#':<4} {'EXP':<5} {'RESULT':<9} {'PROMPT (truncated)'}")
-    print("─" * 90)
+    out_actions = []
+
+    print(f"\nBuilding Strands agent (Bedrock)...")
+    agent = build_strands_agent()
+    print(f"Agent ready. Running {total} prompts through full pipeline ({URL})\n")
+    print(f"{'#':<4} {'EXP':<5} {'IN-GUARD':<10} {'LLM':<5} {'OUT-GUARD':<10} {'PROMPT (truncated)'}")
+    print("─" * 100)
 
     for i, (expected, prompt) in enumerate(PROMPTS, 1):
+        out_action = "—"
         try:
             data    = check_prompt(prompt)
             action  = data.get("action", "ERROR")
             reasons = ", ".join(data.get("reasons", [])) or data.get("error", "")
+
+            if action == "Allow":
+                response_text = str(agent(prompt))
+                openai_like = {
+                    "id": f"bedrock-{MODEL_ID}",
+                    "object": "chat.completion",
+                    "model": MODEL_ID,
+                    "choices": [{"index": 0, "finish_reason": "stop",
+                                  "message": {"role": "assistant", "content": response_text}}],
+                    "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+                }
+                out_data   = ai_guard_check_response(openai_like)
+                out_action = out_data.get("action", "ERROR")
         except Exception as e:
             action  = "ERROR"
             reasons = str(e)
 
         actions.append(action)
-        label    = action
+        out_actions.append(out_action)
         surprise = ""
-        if expected == "bad"  and action == "Allow": surprise = "  ⚠  MISSED"
-        if expected == "good" and action == "Block": surprise = "  ⚠  FALSE POSITIVE"
+        if expected == "bad"  and action == "Allow":  surprise = "  ⚠  MISSED"
+        if expected == "good" and action == "Block":  surprise = "  ⚠  FALSE POSITIVE"
+        if expected == "good" and out_action == "Block": surprise = "  ⚠  OUT-BLOCKED"
 
-        print(f"{i:<4} {expected.upper():<5} {label:<9} {prompt[:60]!r}{surprise}")
+        print(f"{i:<4} {expected.upper():<5} {action:<10} {'Y' if out_action != '—' else 'N':<5} {out_action:<10} {prompt[:55]!r}{surprise}")
         time.sleep(0.05)
 
     blocked         = actions.count("Block")
@@ -229,17 +251,20 @@ if __name__ == "__main__":
     good_correctly  = sum(1 for (e,_), a in zip(PROMPTS, actions) if e=="good" and a=="Allow")
     bad_missed      = sum(1 for (e,_), a in zip(PROMPTS, actions) if e=="bad"  and a=="Allow")
     false_positives = sum(1 for (e,_), a in zip(PROMPTS, actions) if e=="good" and a=="Block")
+    out_blocked     = sum(1 for (e,_), oa in zip(PROMPTS, out_actions) if oa == "Block")
 
     n_bad  = sum(1 for e,_ in PROMPTS if e=="bad")
     n_good = sum(1 for e,_ in PROMPTS if e=="good")
 
-    print("─" * 90)
-    print(f"\n{'SUMMARY':}")
-    print(f"  Total prompts   : {total}  ({n_bad} bad / {n_good} good)")
-    print(f"  Blocked         : {blocked}")
-    print(f"  Allowed         : {allowed}")
-    print(f"  Errors          : {errors}")
-    print(f"  Bad  caught     : {bad_correctly}/{n_bad}  ({100*bad_correctly//n_bad}%)")
-    print(f"  Good passed     : {good_correctly}/{n_good}  ({100*good_correctly//n_good}%)")
-    print(f"  Missed bad      : {bad_missed}")
-    print(f"  False positives : {false_positives}\n")
+    print("─" * 100)
+    print(f"\nSUMMARY")
+    print(f"  Total prompts      : {total}  ({n_bad} bad / {n_good} good)")
+    print(f"  Input guard block  : {blocked}")
+    print(f"  Input guard allow  : {allowed}")
+    print(f"  LLM calls made     : {sum(1 for oa in out_actions if oa != '—')}")
+    print(f"  Output guard block : {out_blocked}")
+    print(f"  Errors             : {errors}")
+    print(f"  Bad  caught        : {bad_correctly}/{n_bad}  ({100*bad_correctly//n_bad}%)")
+    print(f"  Good passed        : {good_correctly}/{n_good}  ({100*good_correctly//n_good}%)")
+    print(f"  Missed bad         : {bad_missed}")
+    print(f"  False positives    : {false_positives}\n")
