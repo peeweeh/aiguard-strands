@@ -227,22 +227,13 @@ def run_prompt(agent, prompt_text):
     finally:
         spin2.stop()
 
-    # wrap and print response
-    words = response_text.split()
-    line, lines = "", []
-    for w in words:
-        if len(line) + len(w) + 1 > 55:
-            lines.append(line)
-            line = w
-        else:
-            line = f"{line} {w}".strip()
-    if line:
-        lines.append(line)
+    # print raw response (preserves markdown formatting from the model)
+    response_lines = response_text.splitlines()
     print()
-    for ln in lines[:20]:  # cap display at 20 lines
+    for ln in response_lines[:30]:
         print(f"  {ln}")
-    if len(lines) > 20:
-        print(f"  {DIM}  … (truncated){RESET}")
+    if len(response_lines) > 30:
+        print(f"  {DIM}  … (truncated — {len(response_lines) - 30} more lines){RESET}")
 
     # ── Step 3: output guard ───────────────────────────────────────────────
     openai_like = {

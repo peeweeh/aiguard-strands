@@ -20,12 +20,12 @@ if len(sys.argv) > 1:
 
 # 2) Trend Vision One AI Guard
 V1_API_KEY = os.environ.get("V1_API_KEY")  # export V1_API_KEY=...
-V1_REGION = os.environ.get("V1_REGION", "us-east-1")  # xdr region (not AWS region)
+V1_REGION = os.environ.get("V1_REGION", "us")  # xdr region (not AWS region)
 
 # 3) AWS / Bedrock / Strands
 AWS_PROFILE = os.environ.get("AWS_PROFILE", "default")  # your existing profile
 AWS_REGION = "us-east-2"  # Bedrock region
-MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"  # Haiku 4.5 in us-east-2
+MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"  # Claude Haiku 4.5 in us-east-2
 
 # Trend Vision One AI Guard endpoint from docs
 # US region: api.xdr.trendmicro.com (no subdomain)
@@ -69,8 +69,7 @@ def ai_guard_check_prompt(prompt: str) -> dict:
 
 def ai_guard_check_response(openai_like: dict) -> dict:
     """
-    OpenAIChatCompletionResponseV1 – pass the whole LLM response,
-    per Vision One example. [web:11]
+    OpenAIChatCompletionResponseV1 – pass the whole LLM response.
     """
     headers = {
         "Authorization": f"Bearer {V1_API_KEY}",
@@ -95,9 +94,10 @@ def ai_guard_check_response(openai_like: dict) -> dict:
     return resp.json()
 
 
-def build_strands_agent() -> Agent:
+def build_strands_agent(system_prompt: str = None) -> Agent:
     """
-    Minimal Strands Agent wired to Bedrock Claude 4.5 Haiku. [web:31][web:32]
+    Minimal Strands Agent wired to Bedrock Claude Haiku 4.5.
+    Pass system_prompt to inject a custom persona / tool context.
     """
     boto_session = boto3.Session(
         profile_name=AWS_PROFILE,
@@ -111,6 +111,7 @@ def build_strands_agent() -> Agent:
 
     agent = Agent(
         model=bedrock_model,
+        system_prompt=system_prompt,
         # suppress default streaming to stdout
         callback_handler=None,
     )
