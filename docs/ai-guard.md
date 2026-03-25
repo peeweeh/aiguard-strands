@@ -20,7 +20,7 @@ User prompt
 │  │ Harmful  │  │ Prompt Attack │  │  PII   │  │
 │  │ Content  │  │   Detector    │  │ Scanner│  │
 │  └──────────┘  └───────────────┘  └────────┘  │
-│  → action: Allow / Block + reasons + rule IDs  │
+│  → action: Allow / Block + reasons + rule IDs │
 └─────────────────┬─────────────────────────────┘
                   │ Allow
                   ▼
@@ -167,8 +167,6 @@ Zero false positives. Zero missed threats on common attack patterns.
 | Email + password pairs | ✅ Blocked | `PI-017N.001` |
 | AWS keys + Stripe secrets (`.env` dump) | ✅ Blocked | `CR-001Y.001` |
 | Medical records with MRN | ✅ Blocked | `PI-012Y.001` |
-| Singapore NRIC + address + phone combined | ✅ Blocked | HR scanner |
-| Standalone NRIC (`S8812345A`) | Allow | Add custom regex rule |
 
 **Standout:** The credential scanner caught a `.env` dump phrased as "please rotate these keys" — semantic classification, not just pattern matching.
 
@@ -190,6 +188,8 @@ Zero false positives. Zero missed threats on common attack patterns.
 ---
 
 ## Environment Setup
+
+Need a Vision One API key with AI Security scope? Start a self-serve 30-day trial via [Trend Micro Trials](https://resources.trendmicro.com/vision-one-trial.html) or [AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-u2in6sa3igl7c?sr=0-3&ref_=beagle&applicationId=AWSMPContessa). Trend Micro path: click **Claim your 30-day free trial now** and submit the form. Marketplace path: click **Try for free** and submit the form. If approved, use the activation email link to sign in (or create an account) and the 30-day trial begins.
 
 ```bash
 # .env.sh
