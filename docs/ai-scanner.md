@@ -33,7 +33,7 @@ mkdir -p tmas && tar -xzf tmas.tar.gz -C tmas && chmod +x tmas/tmas
 
 Set your API key — use your Vision One API key (`V1_API_KEY`), just a different env var name:
 
-Need a Vision One API key? Start a self-serve 30-day trial via [Trend Micro Trials](https://resources.trendmicro.com/vision-one-trial.html) or [AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-u2in6sa3igl7c?sr=0-3&ref_=beagle&applicationId=AWSMPContessa). Trend Micro path: click **Claim your 30-day free trial now** and submit the form. Marketplace path: click **Try for free** and submit the form. If approved, use the activation email link to sign in (or create an account) and the 30-day trial begins.
+Need a Vision One API key? Start a self-serve 30-day trial via [Trend Micro Trials](https://www.trendmicro.com/en_gb/business/products/trials.html?utm_source=aws+summit+london&utm_medium=referral&utm_campaign=ent_aws_dg_e_uk_int_aws+summit+london+_2026) or [AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-u2in6sa3igl7c?sr=0-3&ref_=beagle&applicationId=AWSMPContessa). Trend Micro path: click **Claim your 30-day free trial now** and submit the form. Marketplace path: click **Try for free** and submit the form. If approved, use the activation email link to sign in (or create an account) and the 30-day trial begins.
 
 ```bash
 export TMAS_API_KEY="$V1_API_KEY"

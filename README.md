@@ -25,7 +25,7 @@
 | 2️⃣ | **Guard** — block threats in production | Two HTTP calls in `aig.py` wrapping every prompt in and every response out |
 | 3️⃣ | **Demo** — see it live | `python demo.py` — pick a category, watch Allow/Block in real time |
 
-> **Prerequisites:** Vision One API key (self-serve 30-day trial via [Trend Micro Trials](https://resources.trendmicro.com/vision-one-trial.html) or [AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-u2in6sa3igl7c?sr=0-3&ref_=beagle&applicationId=AWSMPContessa)) · AWS Bedrock access (`us-east-2`) · Python 3.10+
+> **Prerequisites:** Vision One API key (self-serve 30-day trial via [Trend Micro Trials](https://www.trendmicro.com/en_gb/business/products/trials.html?utm_source=aws+summit+london&utm_medium=referral&utm_campaign=ent_aws_dg_e_uk_int_aws+summit+london+_2026) or [AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-u2in6sa3igl7c?sr=0-3&ref_=beagle&applicationId=AWSMPContessa)) · AWS Bedrock access (`us-east-2`) · Python 3.10+
 > **Quick trial steps:** Trend Micro site -> click **Claim your 30-day free trial now** and submit the form. AWS Marketplace -> click **Try for free** and submit the form. If approved, use the activation email link to sign in (or create an account) and your 30-day trial starts.
 
 ---
