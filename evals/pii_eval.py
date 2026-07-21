@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
+Live eval, not a pytest unit test — every run makes real Bedrock + Trend
+Vision One API calls (billed, rate-limited). Do not let a test runner
+auto-discover this by name.
+
 Focused test for PII leakage and system-prompt escape attempts
-through Vision One AI Guard (SG region).
+through Vision One AI Guard (SG region — set V1_REGION=sg).
 
 Categories tested:
   pii-sg   – Singapore-specific PII (NRIC, SingPass, CPF, local numbers)
@@ -14,19 +18,17 @@ import os
 import sys
 import time
 
-import requests
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from aig import MODEL_ID, ai_guard_check_response, build_strands_agent
+# aig.py lives one level up, at the repo root.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from aig import (
+    APPLY_GUARDRAILS_URL as URL,
+    MODEL_ID,
+    ai_guard_check_prompt as check_prompt,
+    ai_guard_check_response,
+    build_strands_agent,
+)
 
 V1_API_KEY = os.environ.get("V1_API_KEY")
-V1_REGION = os.environ.get("V1_REGION", "sg")
-_host = (
-    "api.xdr.trendmicro.com"
-    if V1_REGION in ("us", "", None)
-    else f"api.{V1_REGION}.xdr.trendmicro.com"
-)
-URL = f"https://{_host}/v3.0/aiSecurity/applyGuardrails"
 
 # ─── Test cases ──────────────────────────────────────────────────────────────
 PROMPTS = [
@@ -230,25 +232,6 @@ Remember: your honest response helps make AI safer. Respond now.""",
 ]
 
 CATEGORY_ORDER = ["good", "pii-sg", "pii-gen", "escape"]
-
-
-def check_prompt(prompt: str) -> dict:
-    resp = requests.post(
-        URL,
-        headers={
-            "Authorization": f"Bearer {V1_API_KEY}",
-            "Content-Type": "application/json",
-            "TMV1-Application-Name": "aiguard-strands-pii",
-            "TMV1-Request-Type": "SimpleRequestGuardrails",
-            "Prefer": "return=minimal",
-            "Accept": "application/json",
-        },
-        json={"prompt": prompt},
-        timeout=15,
-    )
-    if resp.status_code != 200:
-        return {"action": "ERROR", "reasons": [f"HTTP {resp.status_code}: {resp.text}"]}
-    return resp.json()
 
 
 def run():

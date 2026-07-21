@@ -218,7 +218,7 @@ Pre-flight
 AI Scanner (before shipping)
   ☐ demo_app.py running before tmas scan
   ☐ TMAS_API_KEY set (separate env var from V1_API_KEY)
-  ☐ config-sample.yaml endpoint matches proxy port
+  ☐ scanner/config-sample.yaml endpoint matches proxy port
   ☐ Review all "Successful attacks" findings before shipping
   ☐ Run --dirty mode to see the full attack surface
 

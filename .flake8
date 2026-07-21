@@ -2,6 +2,6 @@
 max-line-length = 88
 extend-ignore = E402
 per-file-ignores =
-    test_batch.py: E501
-    test_pii.py: E501
+    evals/batch_eval.py: E501
+    evals/pii_eval.py: E501
     demo.py: E501

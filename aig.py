@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import logging
 import os
 import sys
 
@@ -6,6 +7,10 @@ import boto3
 import requests
 from strands import Agent
 from strands.models import BedrockModel
+
+logger = logging.getLogger("aiguard-strands")
+
+_TIMEOUT_SECONDS = 10
 
 # =========================
 # Config – EDIT THIS
@@ -38,60 +43,64 @@ _v1_host = (
 APPLY_GUARDRAILS_URL = f"https://{_v1_host}/v3.0/aiSecurity/applyGuardrails"
 
 
-def ai_guard_check_prompt(prompt: str) -> dict:
-    """
-    SimpleRequestGuardrails – same pattern as Vision One example.
-    """
-    if not V1_API_KEY:
-        raise ValueError("Missing V1_API_KEY environment variable")
-
-    headers = {
+def _headers(request_type: str) -> dict:
+    return {
         "Authorization": f"Bearer {V1_API_KEY}",
         "Content-Type": "application/json",
-        "TMV1-Application-Name": "aiguard-strands-oneoff",
-        "TMV1-Request-Type": "SimpleRequestGuardrails",
+        "TMV1-Application-Name": os.environ.get("V1_APP_NAME", "aiguard-strands"),
+        "TMV1-Request-Type": request_type,
         "Prefer": "return=minimal",
         "Accept": "application/json",
     }
-    payload = {"prompt": prompt}
 
-    resp = requests.post(
-        APPLY_GUARDRAILS_URL,
-        headers=headers,
-        json=payload,
-        timeout=10,
-    )
-    if resp.status_code != 200:
-        raise RuntimeError(f"AI Guard error on prompt: {resp.status_code} {resp.text}")
 
-    return resp.json()
+def ai_guard_check_prompt(prompt: str) -> dict:
+    """
+    SimpleRequestGuardrails – same pattern as Vision One example.
+
+    Fails closed: a missing key, network error, timeout, or non-200 response
+    all return a Block dict rather than raising — one bad network blip
+    shouldn't crash a live demo (or a batch test run) mid-prompt.
+    """
+    if not V1_API_KEY:
+        return {"action": "Block", "reasons": ["V1_API_KEY not set — AI Guard disabled"]}
+    try:
+        resp = requests.post(
+            APPLY_GUARDRAILS_URL,
+            headers=_headers("SimpleRequestGuardrails"),
+            json={"prompt": prompt},
+            timeout=_TIMEOUT_SECONDS,
+        )
+        if resp.status_code != 200:
+            logger.warning("AI Guard input check HTTP %s: %s", resp.status_code, resp.text[:200])
+            return {"action": "Block", "reasons": [f"AI Guard HTTP {resp.status_code} — failing closed"]}
+        return resp.json()
+    except requests.RequestException as e:
+        logger.warning("AI Guard input check failed: %s", e)
+        return {"action": "Block", "reasons": ["AI Guard unreachable — failing closed"]}
 
 
 def ai_guard_check_response(openai_like: dict) -> dict:
     """
     OpenAIChatCompletionResponseV1 – pass the whole LLM response.
+    Fails closed — see ai_guard_check_prompt.
     """
-    headers = {
-        "Authorization": f"Bearer {V1_API_KEY}",
-        "Content-Type": "application/json",
-        "TMV1-Application-Name": "aiguard-strands-oneoff",
-        "TMV1-Request-Type": "OpenAIChatCompletionResponseV1",
-        "Prefer": "return=minimal",
-        "Accept": "application/json",
-    }
-
-    resp = requests.post(
-        APPLY_GUARDRAILS_URL,
-        headers=headers,
-        json=openai_like,
-        timeout=10,
-    )
-    if resp.status_code != 200:
-        raise RuntimeError(
-            f"AI Guard error on response: {resp.status_code} {resp.text}"
+    if not V1_API_KEY:
+        return {"action": "Block", "reasons": ["V1_API_KEY not set — AI Guard disabled"]}
+    try:
+        resp = requests.post(
+            APPLY_GUARDRAILS_URL,
+            headers=_headers("OpenAIChatCompletionResponseV1"),
+            json=openai_like,
+            timeout=_TIMEOUT_SECONDS,
         )
-
-    return resp.json()
+        if resp.status_code != 200:
+            logger.warning("AI Guard output check HTTP %s: %s", resp.status_code, resp.text[:200])
+            return {"action": "Block", "reasons": [f"AI Guard HTTP {resp.status_code} — failing closed"]}
+        return resp.json()
+    except requests.RequestException as e:
+        logger.warning("AI Guard output check failed: %s", e)
+        return {"action": "Block", "reasons": ["AI Guard unreachable — failing closed"]}
 
 
 def build_strands_agent(system_prompt: str = None) -> Agent:

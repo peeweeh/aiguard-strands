@@ -92,10 +92,10 @@ curl -s -X POST http://localhost:5001/ \
 source .env.sh
 TMAS_API_KEY="$V1_API_KEY" ./tmas/tmas aiscan llm \
   --region ap-southeast-1 \
-  --config config-sample.yaml
+  --config scanner/config-sample.yaml
 ```
 
-The included `config-sample.yaml` is pre-configured for this stack:
+The included `scanner/config-sample.yaml` is pre-configured for this stack:
 
 ```yaml
 target:

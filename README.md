@@ -21,7 +21,7 @@
 
 | Step | What | How |
 |:---:|---|---|
-| 1️⃣ | **Scan** — attack your own LLM before you ship | `python demo_app.py --dirty` → `tmas aiscan llm --config config-sample.yaml` |
+| 1️⃣ | **Scan** — attack your own LLM before you ship | `python demo_app.py --dirty` → `tmas aiscan llm --config scanner/config-sample.yaml` |
 | 2️⃣ | **Guard** — block threats in production | Two HTTP calls in `aig.py` wrapping every prompt in and every response out |
 | 3️⃣ | **Demo** — see it live | `python demo.py` — pick a category, watch Allow/Block in real time |
 
@@ -34,12 +34,12 @@
 
 | File | What it does |
 |---|---|
-| [`aig.py`](aig.py) | Core AI Guard helpers — input + output guardrails |
-| [`demo_app.py`](demo_app.py) | Simulated enterprise AI app (FinSight) — Flask + Bedrock with a vulnerable system prompt; TMAS scan target |
+| [`aig.py`](aig.py) | **The library.** Core AI Guard helpers — input + output guardrails. Everything else imports from here; never re-implement the HTTP call elsewhere. |
+| [`demo_app.py`](demo_app.py) | ⚠️ Deliberately vulnerable. Simulated enterprise AI app (FinSight) — Flask + Bedrock with an exploitable system prompt; TMAS scan target only, not a usage example |
 | [`demo.py`](demo.py) | Interactive CLI: pick a category, watch the full pipeline in real time |
-| [`test_batch.py`](test_batch.py) | 100-prompt batch test (70% benign / 30% malicious) via Strands parallel graph |
-| [`test_pii.py`](test_pii.py) | 40-prompt PII + jailbreak test corpus |
-| [`config-sample.yaml`](config-sample.yaml) | Ready-to-use TMAS AI Scanner config for this stack |
+| [`evals/batch_eval.py`](evals/batch_eval.py) | Live eval, not a unit test — 100 prompts (70% benign / 30% malicious) through the full pipeline. Makes real, billed API calls. |
+| [`evals/pii_eval.py`](evals/pii_eval.py) | Live eval, not a unit test — 40-prompt PII + jailbreak corpus (SG region). Makes real, billed API calls. |
+| [`scanner/config-sample.yaml`](scanner/config-sample.yaml) | Ready-to-use TMAS AI Scanner config for this stack |
 
 ---
 
